@@ -1,3 +1,4 @@
+import 'package:daily_bloom/user/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
 
@@ -97,7 +98,13 @@ class LoginScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 58,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                      builder: (context) => HomeScreen(),
+                      ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF6FCF97),
                       foregroundColor: Colors.white,

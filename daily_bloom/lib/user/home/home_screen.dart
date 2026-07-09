@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
+import '../../app_data/app_data.dart';
+import '../../models/quote.dart';
 import '../quote/quote_detail_screen.dart';
+import '../../services/favorite_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,30 +11,29 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class QuoteCard extends StatelessWidget {
-  final String category;
-  final IconData icon;
-  final String quote;
-  final String author;
-  final bool isSaved;
-
+class QuoteCard extends StatefulWidget {
+  final Quote quote;
   const QuoteCard({
     super.key,
-    required this.category,
-    required this.icon,
     required this.quote,
-    required this.author,
-    this.isSaved = false,
   });
 
+  @override
+  State<QuoteCard> createState() => _QuoteCardState();
+}
+
+class _QuoteCardState extends State<QuoteCard> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(28),
-      onTap: () {
-        Navigator.of(context).push(
+      onTap: () async {
+        await Navigator.push(
+          context,
           MaterialPageRoute(
-            builder: (context) => const QuoteDetailScreen(),
+            builder: (context) => QuoteDetailScreen(
+              quote: widget.quote
+            ),
           ),
         );
       },
@@ -60,7 +61,7 @@ class QuoteCard extends StatelessWidget {
                 children: [
 
                   Icon(
-                    icon,
+                    Icons.auto_awesome,
                     size: 15,
                     color: Color(0xFF2E7D32),
                   ),
@@ -68,7 +69,7 @@ class QuoteCard extends StatelessWidget {
                   SizedBox(width: 6),
 
                   Text(
-                    category,
+                    widget.quote.category,
                     style: TextStyle(
                       fontFamily: "Poppins",
                       fontWeight: FontWeight.w600,
@@ -82,7 +83,7 @@ class QuoteCard extends StatelessWidget {
             SizedBox(height: 25),
 
             Text(
-              "\"$quote\"",
+              widget.quote.text,
               style: TextStyle(
                 fontFamily: "CormorantGaramond",
                 fontSize: 30,
@@ -99,7 +100,7 @@ class QuoteCard extends StatelessWidget {
 
                 Expanded(
                   child: Text(
-                    "- $author",
+                    "- " + widget.quote.author,
                     style: TextStyle(
                       fontFamily: "Poppins",
                       fontSize: 16,
@@ -118,13 +119,27 @@ class QuoteCard extends StatelessWidget {
                   ),
                   child: IconButton(
                     splashRadius: 20,
-                    onPressed: () {},
+
+                    onPressed: () {
+
+                      setState(() {
+                        FavoriteService.toggleSave(widget.quote);
+                      });
+
+                    },
+
                     icon: Icon(
-                      isSaved
+
+                      FavoriteService.isSaved(widget.quote)
                           ? Icons.favorite
                           : Icons.favorite_border_rounded,
-                      color: isSaved ? Colors.red : Colors.black87,
+
+                      color: FavoriteService.isSaved(widget.quote)
+                          ? Colors.red
+                          : Colors.black87,
+
                       size: 20,
+
                     ),
                   ),
                 ),
@@ -157,37 +172,6 @@ class QuoteCard extends StatelessWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Map<String, dynamic>> quotes = [
-    {
-      "category": "Motivation",
-      "icon": Icons.local_florist,
-      "quote":
-      "The happiness of your life depends upon the quality of your thoughts.",
-      "author": "Marcus Aurelius",
-    },
-    {
-      "category": "Mindfulness",
-      "icon": Icons.self_improvement,
-      "quote":
-      "Wherever you are, be there totally.",
-      "author": "Eckhart Tolle",
-    },
-    {
-      "category": "Success",
-      "icon": Icons.emoji_events_outlined,
-      "quote":
-      "Success is the sum of small efforts repeated day in and day out.",
-      "author": "Robert Collier",
-    },
-    {
-      "category": "Nature",
-      "icon": Icons.eco_outlined,
-      "quote":
-      "Look deep into nature, and then you will understand everything better.",
-      "author": "Albert Einstein",
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,19 +262,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
               Expanded(
                 child: ListView.builder(
-                  itemCount: quotes.length,
+                  itemCount: AppData.quotes.length,
                   itemBuilder: (context, index) {
 
-                    final quote = quotes[index];
+                    final quote = AppData.quotes[index];
 
                     return Padding(
-                      padding:
-                      EdgeInsets.only(bottom: 18),
+                      padding: const EdgeInsets.only(bottom: 18),
                       child: QuoteCard(
-                        category: quote["category"],
-                        icon: quote["icon"],
-                        quote: quote["quote"],
-                        author: quote["author"],
+                        quote: quote,
                       ),
                     );
                   },

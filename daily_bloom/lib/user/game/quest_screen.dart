@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../app_data/app_data.dart';
+import '../../models/game_item.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -52,25 +54,53 @@ class StatCard extends StatelessWidget {
 }
 
 class AnswerTile extends StatelessWidget {
+
   final String text;
+  final bool selected;
+  final bool correct;
+  final bool answered;
+
 
   const AnswerTile({
     super.key,
     required this.text,
+    required this.selected,
+    required this.correct,
+    required this.answered,
   });
+
 
   @override
   Widget build(BuildContext context) {
+
+    Color tileColor = Colors.white;
+
+
+    if(answered){
+
+      if(correct){
+        tileColor = Colors.green.shade200;
+      }
+
+      else if(selected){
+        tileColor = Colors.red.shade200;
+      }
+
+    }
+
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: 20,
         vertical: 18,
       ),
+
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: tileColor,
         borderRadius: BorderRadius.circular(18),
       ),
+
       child: Text(
         text,
         style: TextStyle(
@@ -84,10 +114,17 @@ class AnswerTile extends StatelessWidget {
 
 
 class _QuestScreenState extends State<QuestScreen> {
+  int currentIndex = 0;
+  int selectedAnswer = -1;
+  bool answered = false;
+  int xp = 0;
+  int streak = 0;
   bool guessAuthor = true;
 
   @override
   Widget build(BuildContext context) {
+    final GameItem currentGame =
+    AppData.gameItems[currentIndex];
     return Scaffold(
       backgroundColor: Color(0xffF8F8F8),
       appBar: AppBar(
@@ -207,10 +244,10 @@ class _QuestScreenState extends State<QuestScreen> {
                   SizedBox(height: 20),
 
                   Text(
-                    guessAuthor
-                        ? "\"The happiness of your life depends upon the quality of your thoughts.\""
-                        : "\"The happiness of your life depends upon the quality of your ______.\"",
+                    currentGame.question,
+
                     textAlign: TextAlign.center,
+
                     style: TextStyle(
                       fontFamily: "CormorantGaramond",
                       fontStyle: FontStyle.italic,
@@ -223,20 +260,106 @@ class _QuestScreenState extends State<QuestScreen> {
             ),
 
             SizedBox(height: 25),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
 
-            AnswerTile(text: "Marcus Aurelius"),
-            SizedBox(height: 12),
-            AnswerTile(text: "Seneca"),
-            SizedBox(height: 12),
-            AnswerTile(text: "Confucius"),
-            SizedBox(height: 12),
-            AnswerTile(text: "Aristotle"),
+              itemCount: currentGame.options.length,
 
-            SizedBox(height: 25),
+              itemBuilder: (context, index) {
+
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+
+                  child: GestureDetector(
+
+                    onTap: () {
+
+                      if(answered) return;
+
+                      setState(() {
+
+                        selectedAnswer = index;
+                        answered = true;
+
+                        if(currentGame.options[index] ==
+                            currentGame.correctAnswer) {
+
+                          xp += currentGame.points;
+                          streak++;
+
+                        } else {
+
+                          streak = 0;
+
+                        }
+
+                      });
+
+                    },
+
+
+                    child: AnswerTile(
+                      text: currentGame.options[index],
+
+                      selected: selectedAnswer == index,
+
+                      correct: currentGame.options[index] ==
+                          currentGame.correctAnswer,
+
+                      answered: answered,
+                    ),
+
+                  ),
+                );
+
+              },
+            ),
+
+            SizedBox(height:20),
+
+            if(answered)
+
+              Center(
+                child: ElevatedButton(
+
+                  onPressed:(){
+
+                    setState((){
+
+                      currentIndex++;
+
+                      if(currentIndex >= AppData.gameItems.length){
+                        currentIndex = 0;
+                      }
+
+                      selectedAnswer = -1;
+                      answered = false;
+
+                    });
+
+                  },
+
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF6FCF97),
+                    foregroundColor: Colors.white,
+                  ),
+
+                  child: Text(
+                    "Next Question",
+                    style: TextStyle(
+                      fontFamily:"Poppins",
+                    ),
+                  ),
+
+                ),
+
+              ),
 
             Center(
               child: Text(
-                "+20 XP",
+                "+$xp XP",
                 style: TextStyle(
                   fontFamily: "Poppins",
                   color: Color(0xFF6FCF97),
